@@ -18,13 +18,18 @@ DevToDo is a simple portfolio web application starter with a minimal Go backend 
 devtodo/
 |-- backend/
 |   |-- cmd/
-|   |   \-- api/
+|   |   |-- api/
+|   |       \-- main.go
+|   |   \-- migrate/
 |   |       \-- main.go
 |   |-- internal/
 |   |   |-- config/
 |   |   |   \-- config.go
+|   |   |-- database/
+|   |       \-- postgres.go
 |   |   \-- router/
 |   |       \-- router.go
+|   |-- migrations/
 |   \-- go.mod
 |-- docs/
 |-- frontend/
@@ -37,21 +42,32 @@ devtodo/
 ## Local development
 
 1. Install Go and Docker on your machine.
-2. Copy `.env.example` to `.env`.
+2. Create your local environment file:
+
+```cmd
+copy .env.example .env
+```
+
 3. Start PostgreSQL and Adminer:
 
-```bash
+```cmd
 docker compose up -d devtodo-postgres devtodo-adminer
 ```
 
-4. Start the backend:
+4. Run the database migrations:
 
-```bash
+```cmd
 cd backend
+go run ./cmd/migrate up
+```
+
+5. Start the backend:
+
+```cmd
 go run ./cmd/api
 ```
 
-5. Open the health check:
+6. Open the health check:
 
 ```text
 http://localhost:8080/health
@@ -68,7 +84,28 @@ Expected response:
 
 Adminer will be available at `http://localhost:8081`.
 
-The backend does not use PostgreSQL yet, so you can still run the `/health` endpoint even if the database is not started.
+### Check `/ready`
+
+If your local backend already includes the database readiness route, check it with:
+
+```cmd
+curl http://localhost:8080/ready
+```
+
+### Verify the tables with `psql`
+
+You can confirm the migrations created the tables with:
+
+```cmd
+docker compose exec devtodo-postgres psql -U devtodo -d devtodo_db -c "\dt"
+```
+
+Expected tables:
+
+- `schema_migrations`
+- `users`
+- `projects`
+- `tasks`
 
 ## Current status
 
