@@ -36,25 +36,35 @@ devtodo/
 
 ## Local development
 
-1. Install Go and Docker on your machine.
-2. Copy `.env.example` to `.env`.
-3. Start PostgreSQL and Adminer:
+1. Install Go and Docker Desktop on your machine.
+2. Copy the example environment file:
 
-```bash
-docker compose up -d devtodo-postgres devtodo-adminer
+```cmd
+copy .env.example .env
 ```
 
-4. Start the backend:
+3. DevToDo uses Docker PostgreSQL on `127.0.0.1:15433` so it does not conflict with local PostgreSQL services already using other ports.
+4. Restart the Docker services:
 
-```bash
+```cmd
+docker compose down -v
+docker compose up -d
+docker compose ps
+```
+
+5. Run the backend from the `backend` folder:
+
+```cmd
 cd backend
 go run ./cmd/api
 ```
 
-5. Open the health check:
+The backend uses safe local defaults, so it can start even if you do not set any environment variables first.
 
-```text
-http://localhost:8080/health
+6. Check the health endpoint in another terminal:
+
+```cmd
+curl http://localhost:8080/health
 ```
 
 Expected response:
@@ -66,9 +76,33 @@ Expected response:
 }
 ```
 
+7. Check the readiness endpoint:
+
+```cmd
+curl http://localhost:8080/ready
+```
+
+Expected response when PostgreSQL is running:
+
+```json
+{
+  "status": "ok",
+  "database": "connected"
+}
+```
+
+Expected response when PostgreSQL is not available:
+
+```json
+{
+  "status": "error",
+  "database": "not connected"
+}
+```
+
 Adminer will be available at `http://localhost:8081`.
 
-The backend does not use PostgreSQL yet, so you can still run the `/health` endpoint even if the database is not started.
+`/health` stays simple and works even if PostgreSQL is not running. `/ready` checks whether the backend can reach PostgreSQL on `127.0.0.1:15433`.
 
 ## Current status
 
