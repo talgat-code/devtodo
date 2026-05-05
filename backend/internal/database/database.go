@@ -80,6 +80,20 @@ func Connect(ctx context.Context, cfg config.Config) (*pgxpool.Pool, error) {
 	return pgxpool.NewWithConfig(ctx, poolConfig)
 }
 
+func OpenPool(ctx context.Context, cfg config.Config) (*pgxpool.Pool, error) {
+	pool, err := Connect(ctx, cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := Ping(ctx, pool); err != nil {
+		Close(pool)
+		return nil, err
+	}
+
+	return pool, nil
+}
+
 func Ping(ctx context.Context, pool *pgxpool.Pool) error {
 	if pool == nil {
 		return errors.New("database pool is nil")

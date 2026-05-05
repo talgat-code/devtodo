@@ -1,3 +1,0 @@
-2026/05/05 00:21:38 database config: host=127.0.0.1 port=5432 user=devtodo database=devtodo_db sslmode=disable use_database_url=false password_length=16
-2026/05/05 00:21:38 PostgreSQL is not ready yet: failed to connect to `user=devtodo database=devtodo_db`: 127.0.0.1:5432 (127.0.0.1): failed SASL auth: ВАЖНО: пользователь "devtodo" не прошёл проверку подлинности (по паролю) (SQLSTATE 28P01)
-2026/05/05 00:21:38 starting DevToDo on port 8082

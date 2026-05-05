@@ -22,15 +22,15 @@ func SetupRouter(appName string, dbPool *pgxpool.Pool) *gin.Engine {
 	r.GET("/ready", func(c *gin.Context) {
 		if err := database.Ping(c.Request.Context(), dbPool); err != nil {
 			c.JSON(http.StatusServiceUnavailable, gin.H{
-				"status":   "error",
 				"database": "not connected",
+				"status":   "error",
 			})
 			return
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"status":   "ok",
 			"database": "connected",
+			"status":   "ok",
 		})
 	})
 

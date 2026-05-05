@@ -1,7 +1,10 @@
 package config
 
 import (
+	"bufio"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 type Config struct {
@@ -18,6 +21,8 @@ type Config struct {
 }
 
 func Load() Config {
+	loadEnvFiles()
+
 	postgresHost := getEnv("POSTGRES_HOST", "127.0.0.1")
 	postgresPort := getEnv("POSTGRES_PORT", "15433")
 	postgresUser := getEnv("POSTGRES_USER", "devtodo")
@@ -56,4 +61,52 @@ func getOptionalEnv(key string) (string, bool) {
 	}
 
 	return value, true
+}
+
+func loadEnvFiles() {
+	candidates := []string{
+		".env",
+		".env.local",
+		filepath.Join("..", ".env"),
+		filepath.Join("..", ".env.local"),
+	}
+
+	for _, candidate := range candidates {
+		loadEnvFile(candidate)
+	}
+}
+
+func loadEnvFile(path string) {
+	file, err := os.Open(path)
+	if err != nil {
+		return
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+
+		key, value, found := strings.Cut(line, "=")
+		if !found {
+			continue
+		}
+
+		key = strings.TrimSpace(strings.TrimPrefix(key, "export "))
+		value = strings.TrimSpace(value)
+		value = strings.Trim(value, `"'`)
+
+		if key == "" {
+			continue
+		}
+
+		if _, exists := os.LookupEnv(key); exists {
+			continue
+		}
+
+		_ = os.Setenv(key, value)
+	}
 }
