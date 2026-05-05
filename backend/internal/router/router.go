@@ -6,6 +6,7 @@ import (
 	"devtodo/internal/auth"
 	"devtodo/internal/database"
 	"devtodo/internal/middleware"
+	"devtodo/internal/projects"
 	"devtodo/internal/users"
 
 	"github.com/gin-gonic/gin"
@@ -17,6 +18,8 @@ func SetupRouter(appName string, dbPool *pgxpool.Pool, jwtSecret string) *gin.En
 	userStore := users.NewStore(dbPool)
 	authService := auth.NewService(userStore, jwtSecret)
 	authHandler := auth.NewHandler(authService)
+	projectStore := projects.NewStore(dbPool)
+	projectHandler := projects.NewHandler(projectStore)
 
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
@@ -48,6 +51,11 @@ func SetupRouter(appName string, dbPool *pgxpool.Pool, jwtSecret string) *gin.En
 	protectedRoutes := api.Group("")
 	protectedRoutes.Use(middleware.RequireAuth(authService))
 	protectedRoutes.GET("/me", authHandler.Me)
+	protectedRoutes.GET("/projects", projectHandler.List)
+	protectedRoutes.POST("/projects", projectHandler.Create)
+	protectedRoutes.GET("/projects/:id", projectHandler.GetByID)
+	protectedRoutes.PATCH("/projects/:id", projectHandler.Update)
+	protectedRoutes.DELETE("/projects/:id", projectHandler.Delete)
 
 	return r
 }
