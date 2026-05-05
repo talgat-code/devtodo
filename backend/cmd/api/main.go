@@ -37,7 +37,7 @@ func main() {
 		log.Printf("connected to PostgreSQL")
 	}
 
-	r := router.SetupRouter(cfg.AppName, dbPool)
+	r := router.SetupRouter(cfg.AppName, dbPool, cfg.JWTSecret)
 
 	log.Printf("starting %s on port %s", cfg.AppName, cfg.Port)
 

@@ -23,12 +23,20 @@ devtodo/
 |   |   \-- migrate/
 |   |       \-- main.go
 |   |-- internal/
+|   |   |-- auth/
+|   |   |   |-- handler.go
+|   |   |   \-- service.go
 |   |   |-- config/
 |   |   |   \-- config.go
 |   |   |-- database/
 |   |   |   \-- database.go
-|   |   \-- router/
-|   |       \-- router.go
+|   |   |-- middleware/
+|   |   |   \-- auth.go
+|   |   |-- router/
+|   |   |   \-- router.go
+|   |   \-- users/
+|   |       |-- repository.go
+|   |       \-- user.go
 |   |-- migrations/
 |   \-- go.mod
 |-- docs/
@@ -128,6 +136,33 @@ Expected tables:
 - `tasks`
 
 `/health` stays simple and works even if PostgreSQL is not running. `/ready` checks whether the backend can reach PostgreSQL on `127.0.0.1:15433`.
+
+## Auth API
+
+### Register
+
+```cmd
+curl -X POST http://localhost:8080/api/auth/register ^
+  -H "Content-Type: application/json" ^
+  -d "{\"name\":\"John Doe\",\"email\":\"john@example.com\",\"password\":\"password123\"}"
+```
+
+### Login
+
+```cmd
+curl -X POST http://localhost:8080/api/auth/login ^
+  -H "Content-Type: application/json" ^
+  -d "{\"email\":\"john@example.com\",\"password\":\"password123\"}"
+```
+
+Copy the `access_token` value from the login response.
+
+### Get `/api/me`
+
+```cmd
+curl http://localhost:8080/api/me ^
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE"
+```
 
 ## Current status
 
