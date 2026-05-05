@@ -3,14 +3,20 @@ package router
 import (
 	"net/http"
 
+	"devtodo/internal/auth"
 	"devtodo/internal/database"
+	"devtodo/internal/middleware"
+	"devtodo/internal/users"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func SetupRouter(appName string, dbPool *pgxpool.Pool) *gin.Engine {
+func SetupRouter(appName string, dbPool *pgxpool.Pool, jwtSecret string) *gin.Engine {
 	r := gin.Default()
+	userStore := users.NewStore(dbPool)
+	authService := auth.NewService(userStore, jwtSecret)
+	authHandler := auth.NewHandler(authService)
 
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
@@ -33,6 +39,15 @@ func SetupRouter(appName string, dbPool *pgxpool.Pool) *gin.Engine {
 			"status":   "ok",
 		})
 	})
+
+	api := r.Group("/api")
+	authRoutes := api.Group("/auth")
+	authRoutes.POST("/register", authHandler.Register)
+	authRoutes.POST("/login", authHandler.Login)
+
+	protectedRoutes := api.Group("")
+	protectedRoutes.Use(middleware.RequireAuth(authService))
+	protectedRoutes.GET("/me", authHandler.Me)
 
 	return r
 }

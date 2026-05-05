@@ -18,6 +18,7 @@ type Config struct {
 	PostgresSSLMode  string
 	DatabaseURL      string
 	UseDatabaseURL   bool
+	JWTSecret        string
 }
 
 func Load() Config {
@@ -42,6 +43,7 @@ func Load() Config {
 		PostgresSSLMode:  postgresSSLMode,
 		DatabaseURL:      databaseURL,
 		UseDatabaseURL:   useDatabaseURL,
+		JWTSecret:        getEnv("JWT_SECRET", "change_me_later"),
 	}
 }
 
