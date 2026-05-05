@@ -12,15 +12,29 @@ import (
 func main() {
 	cfg := config.Load()
 	ctx := context.Background()
+	connectionInfo := database.DescribeConnection(cfg)
 
-	dbPool, err := database.NewPool(ctx, cfg)
+	log.Printf(
+		"database config: host=%s port=%s user=%s database=%s sslmode=%s use_database_url=%t password_length=%d",
+		connectionInfo.Host,
+		connectionInfo.Port,
+		connectionInfo.User,
+		connectionInfo.Database,
+		connectionInfo.SSLMode,
+		connectionInfo.UsesDatabaseURL,
+		connectionInfo.PasswordLength,
+	)
+
+	dbPool, err := database.Connect(ctx, cfg)
 	if err != nil {
-		log.Fatalf("could not create database pool: %v", err)
+		log.Fatalf("failed to create PostgreSQL pool: %v", err)
 	}
-	defer dbPool.Close()
+	defer database.Close(dbPool)
 
 	if err := database.Ping(ctx, dbPool); err != nil {
-		log.Printf("database not ready: %v", err)
+		log.Printf("PostgreSQL is not ready yet: %v", err)
+	} else {
+		log.Printf("connected to PostgreSQL")
 	}
 
 	r := router.SetupRouter(cfg.AppName, dbPool)

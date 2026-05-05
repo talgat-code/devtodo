@@ -2,7 +2,6 @@ package config
 
 import (
 	"bufio"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -18,35 +17,50 @@ type Config struct {
 	PostgresDB       string
 	PostgresSSLMode  string
 	DatabaseURL      string
+	UseDatabaseURL   bool
 }
 
 func Load() Config {
 	loadEnvFiles()
 
-	port := getEnv("APP_PORT", "8080")
-	host := getEnv("POSTGRES_HOST", "localhost")
-	dbPort := getEnv("POSTGRES_PORT", "5432")
-	user := getEnv("POSTGRES_USER", "devtodo")
-	password := getEnv("POSTGRES_PASSWORD", "devtodo_password")
-	databaseName := getEnv("POSTGRES_DB", "devtodo_db")
-	sslMode := getEnv("POSTGRES_SSLMODE", "disable")
-	databaseURL := os.Getenv("DATABASE_URL")
-
-	if databaseURL == "" {
-		databaseURL = buildDatabaseURL(host, dbPort, user, password, databaseName, sslMode)
-	}
+	postgresHost := getEnv("POSTGRES_HOST", "127.0.0.1")
+	postgresPort := getEnv("POSTGRES_PORT", "15433")
+	postgresUser := getEnv("POSTGRES_USER", "devtodo")
+	postgresPassword := getEnv("POSTGRES_PASSWORD", "devtodo_password")
+	postgresDB := getEnv("POSTGRES_DB", "devtodo_db")
+	postgresSSLMode := getEnv("POSTGRES_SSLMODE", "disable")
+	databaseURL, useDatabaseURL := getOptionalEnv("DATABASE_URL")
 
 	return Config{
 		AppName:          "DevToDo",
-		Port:             port,
-		PostgresHost:     host,
-		PostgresPort:     dbPort,
-		PostgresUser:     user,
-		PostgresPassword: password,
-		PostgresDB:       databaseName,
-		PostgresSSLMode:  sslMode,
+		Port:             getEnv("APP_PORT", "8080"),
+		PostgresHost:     postgresHost,
+		PostgresPort:     postgresPort,
+		PostgresUser:     postgresUser,
+		PostgresPassword: postgresPassword,
+		PostgresDB:       postgresDB,
+		PostgresSSLMode:  postgresSSLMode,
 		DatabaseURL:      databaseURL,
+		UseDatabaseURL:   useDatabaseURL,
 	}
+}
+
+func getEnv(key, fallback string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		return fallback
+	}
+
+	return value
+}
+
+func getOptionalEnv(key string) (string, bool) {
+	value := os.Getenv(key)
+	if value == "" {
+		return "", false
+	}
+
+	return value, true
 }
 
 func loadEnvFiles() {
@@ -95,28 +109,4 @@ func loadEnvFile(path string) {
 
 		_ = os.Setenv(key, value)
 	}
-}
-
-func getEnv(key, fallback string) string {
-	value := os.Getenv(key)
-	if value == "" {
-		return fallback
-	}
-
-	return value
-}
-
-func buildDatabaseURL(host, port, user, password, databaseName, sslMode string) string {
-	connectionURL := &url.URL{
-		Scheme: "postgres",
-		User:   url.UserPassword(user, password),
-		Host:   host + ":" + port,
-		Path:   databaseName,
-	}
-
-	query := connectionURL.Query()
-	query.Set("sslmode", sslMode)
-	connectionURL.RawQuery = query.Encode()
-
-	return connectionURL.String()
 }

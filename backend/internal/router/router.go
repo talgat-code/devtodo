@@ -13,7 +13,7 @@ func SetupRouter(appName string, dbPool *pgxpool.Pool) *gin.Engine {
 	r := gin.Default()
 
 	r.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"status": "ok",
 			"app":    appName,
 		})

@@ -19,14 +19,14 @@ devtodo/
 |-- backend/
 |   |-- cmd/
 |   |   |-- api/
-|   |       \-- main.go
+|   |   |   \-- main.go
 |   |   \-- migrate/
 |   |       \-- main.go
 |   |-- internal/
 |   |   |-- config/
 |   |   |   \-- config.go
 |   |   |-- database/
-|   |       \-- postgres.go
+|   |   |   \-- database.go
 |   |   \-- router/
 |   |       \-- router.go
 |   |-- migrations/
@@ -41,36 +41,40 @@ devtodo/
 
 ## Local development
 
-1. Install Go and Docker on your machine.
-2. Create your local environment file:
+1. Install Go and Docker Desktop on your machine.
+2. Copy the example environment file:
 
 ```cmd
 copy .env.example .env
 ```
 
-3. Start PostgreSQL and Adminer:
+3. DevToDo uses Docker PostgreSQL on `127.0.0.1:15433` so it does not conflict with local PostgreSQL services already using other ports.
+4. Start PostgreSQL and Adminer:
 
 ```cmd
 docker compose up -d devtodo-postgres devtodo-adminer
+docker compose ps
 ```
 
-4. Run the database migrations:
+5. Run the database migrations:
 
 ```cmd
 cd backend
 go run ./cmd/migrate up
 ```
 
-5. Start the backend:
+6. Start the backend:
 
 ```cmd
 go run ./cmd/api
 ```
 
-6. Open the health check:
+The backend uses safe local defaults, so it can start even if you do not set extra environment variables first.
 
-```text
-http://localhost:8080/health
+7. Check the health endpoint in another terminal:
+
+```cmd
+curl http://localhost:8080/health
 ```
 
 Expected response:
@@ -82,15 +86,31 @@ Expected response:
 }
 ```
 
-Adminer will be available at `http://localhost:8081`.
-
-### Check `/ready`
-
-If your local backend already includes the database readiness route, check it with:
+8. Check the readiness endpoint:
 
 ```cmd
 curl http://localhost:8080/ready
 ```
+
+Expected response when PostgreSQL is running:
+
+```json
+{
+  "status": "ok",
+  "database": "connected"
+}
+```
+
+Expected response when PostgreSQL is not available:
+
+```json
+{
+  "status": "error",
+  "database": "not connected"
+}
+```
+
+Adminer will be available at `http://localhost:8081`.
 
 ### Verify the tables with `psql`
 
@@ -106,6 +126,8 @@ Expected tables:
 - `users`
 - `projects`
 - `tasks`
+
+`/health` stays simple and works even if PostgreSQL is not running. `/ready` checks whether the backend can reach PostgreSQL on `127.0.0.1:15433`.
 
 ## Current status
 
