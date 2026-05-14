@@ -5,9 +5,9 @@
 :root {
   color: #102033;
   background:
-    radial-gradient(circle at top left, rgba(15, 118, 110, 0.14), transparent 30%),
-    radial-gradient(circle at top right, rgba(232, 138, 90, 0.18), transparent 28%),
-    linear-gradient(180deg, #fffaf3 0%, #fffdf8 42%, #f5fbff 100%);
+    radial-gradient(circle at top left, rgba(15, 118, 110, 0.1), transparent 28%),
+    radial-gradient(circle at top right, rgba(245, 158, 11, 0.12), transparent 24%),
+    linear-gradient(180deg, #fffdfa 0%, #fcfaf6 42%, #f7fbfb 100%);
   color-scheme: light;
   font-family: "Aptos", "Segoe UI", Tahoma, sans-serif;
 }
@@ -64,11 +64,11 @@ body {
 
 @layer components {
   .surface-card {
-    @apply rounded-[30px] border border-white/80 bg-white/85 shadow-soft backdrop-blur;
+    @apply rounded-[30px] border border-white/80 bg-white/90 shadow-soft backdrop-blur;
   }
 
   .soft-input {
-    @apply w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-800 shadow-sm transition placeholder:text-slate-400 focus:border-teal-500;
+    @apply w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm transition placeholder:text-slate-400 focus:border-teal-500;
   }
 
   .primary-button {
@@ -76,7 +76,7 @@ body {
   }
 
   .secondary-button {
-    @apply inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white/85 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white/90 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white disabled:cursor-not-allowed disabled:opacity-60;
   }
 }
 
