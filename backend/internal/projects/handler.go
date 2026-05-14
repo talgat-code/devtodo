@@ -104,7 +104,7 @@ func (h *Handler) GetByID(c *gin.Context) {
 		return
 	}
 
-	project, err := h.store.GetByID(c.Request.Context(), c.Param("id"), userID)
+	project, err := h.store.GetByID(c.Request.Context(), c.Param("project_id"), userID)
 	if err != nil {
 		if errors.Is(err, ErrProjectNotFound) {
 			writeError(c, http.StatusNotFound, "project not found")
@@ -132,7 +132,7 @@ func (h *Handler) Update(c *gin.Context) {
 	}
 
 	input := UpdateInput{
-		ID:     c.Param("id"),
+		ID:     c.Param("project_id"),
 		UserID: userID,
 	}
 
@@ -180,7 +180,7 @@ func (h *Handler) Delete(c *gin.Context) {
 		return
 	}
 
-	err := h.store.Delete(c.Request.Context(), c.Param("id"), userID)
+	err := h.store.Delete(c.Request.Context(), c.Param("project_id"), userID)
 	if err != nil {
 		if errors.Is(err, ErrProjectNotFound) {
 			writeError(c, http.StatusNotFound, "project not found")
