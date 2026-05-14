@@ -1,141 +1,156 @@
 # DevToDo
 
-DevToDo is a simple portfolio web application starter with a minimal Go backend and room for a future frontend.
+DevToDo is a Go + PostgreSQL backend with a Vite + React + TypeScript frontend for personal projects and task tracking.
 
 ## Tech stack
 
 - Go
 - Gin
 - PostgreSQL
-- SvelteKit
+- Vite
+- React
+- TypeScript
 - Tailwind CSS
 - Docker
-- Git
 
 ## Project structure
 
 ```text
 devtodo/
 |-- backend/
-|   |-- cmd/
-|   |   |-- api/
-|   |   |   \-- main.go
-|   |   \-- migrate/
-|   |       \-- main.go
-|   |-- internal/
-|   |   |-- auth/
-|   |   |   |-- handler.go
-|   |   |   \-- service.go
-|   |   |-- config/
-|   |   |   \-- config.go
-|   |   |-- database/
-|   |   |   \-- database.go
-|   |   |-- middleware/
-|   |   |   \-- auth.go
-|   |   |-- router/
-|   |   |   \-- router.go
-|   |   \-- users/
-|   |       |-- repository.go
-|   |       \-- user.go
-|   |-- migrations/
-|   \-- go.mod
 |-- docs/
 |-- frontend/
+|   |-- src/
+|   |   |-- api/
+|   |   |   \-- client.ts
+|   |   |-- components/
+|   |   |-- styles/
+|   |   |   \-- index.css
+|   |   |-- App.tsx
+|   |   |-- main.tsx
+|   |   \-- types.ts
+|   |-- .env.example
+|   |-- index.html
+|   |-- package.json
+|   |-- tailwind.config.ts
+|   \-- vite.config.ts
+|-- scripts/
+|   \-- smoke-test.ps1
 |-- .env.example
-|-- .gitignore
 |-- docker-compose.yml
 \-- README.md
 ```
 
-## Local development
+## Backend setup
 
-1. Install Go and Docker Desktop on your machine.
-2. Copy the example environment file:
+1. Install Go and Docker Desktop.
+2. Copy the root environment file:
 
 ```cmd
 copy .env.example .env
 ```
 
-3. DevToDo uses Docker PostgreSQL on `127.0.0.1:15433` so it does not conflict with local PostgreSQL services already using other ports.
-4. Start PostgreSQL and Adminer:
+3. Start PostgreSQL and Adminer:
 
 ```cmd
 docker compose up -d devtodo-postgres devtodo-adminer
 docker compose ps
 ```
 
-5. Run the database migrations:
+4. Run migrations:
 
 ```cmd
 cd backend
 go run ./cmd/migrate up
 ```
 
-6. Start the backend:
+5. Start the backend:
 
 ```cmd
 go run ./cmd/api
 ```
 
-The backend uses safe local defaults, so it can start even if you do not set extra environment variables first.
+The default backend URL is `http://localhost:8080`.
 
-7. Check the health endpoint in another terminal:
+Adminer is available at `http://localhost:8081`.
+
+### Health checks
 
 ```cmd
 curl http://localhost:8080/health
-```
-
-Expected response:
-
-```json
-{
-  "status": "ok",
-  "app": "DevToDo"
-}
-```
-
-8. Check the readiness endpoint:
-
-```cmd
 curl http://localhost:8080/ready
 ```
 
-Expected response when PostgreSQL is running:
+## Frontend setup
 
-```json
-{
-  "status": "ok",
-  "database": "connected"
-}
-```
+The frontend lives inside `frontend/` and uses `VITE_API_BASE_URL` to decide which backend to talk to.
 
-Expected response when PostgreSQL is not available:
-
-```json
-{
-  "status": "error",
-  "database": "not connected"
-}
-```
-
-Adminer will be available at `http://localhost:8081`.
-
-### Verify the tables with `psql`
-
-You can confirm the migrations created the tables with:
+1. Copy the frontend environment file:
 
 ```cmd
-docker compose exec devtodo-postgres psql -U devtodo -d devtodo_db -c "\dt"
+cd frontend
+copy .env.example .env
 ```
 
-Expected tables:
+2. Install dependencies:
 
-- `schema_migrations`
-- `users`
-- `projects`
-- `tasks`
+```cmd
+npm install
+```
 
-`/health` stays simple and works even if PostgreSQL is not running. `/ready` checks whether the backend can reach PostgreSQL on `127.0.0.1:15433`.
+3. Start the frontend dev server on port `5173`:
+
+```cmd
+npm run dev
+```
+
+4. Open the app:
+
+```text
+http://localhost:5173
+```
+
+### Switching backend ports
+
+`frontend/.env.example` contains:
+
+```env
+VITE_API_BASE_URL=http://localhost:8080
+```
+
+If your backend is running on `http://localhost:18080`, change it to:
+
+```env
+VITE_API_BASE_URL=http://localhost:18080
+```
+
+The Vite dev server proxies `/api`, `/health`, and `/ready` to `VITE_API_BASE_URL`, which helps avoid local CORS issues without changing the Go backend.
+
+## Typical local workflow
+
+1. Start PostgreSQL:
+
+```cmd
+docker compose up -d devtodo-postgres devtodo-adminer
+```
+
+2. Run migrations and start the API:
+
+```cmd
+cd backend
+go run ./cmd/migrate up
+go run ./cmd/api
+```
+
+3. Start the frontend:
+
+```cmd
+cd frontend
+npm install
+npm run dev
+```
+
+4. Open `http://localhost:5173`.
 
 ## Auth API
 
@@ -157,13 +172,111 @@ curl -X POST http://localhost:8080/api/auth/login ^
 
 Copy the `access_token` value from the login response.
 
+```cmd
+set TOKEN=PASTE_ACCESS_TOKEN_HERE
+```
+
 ### Get `/api/me`
 
 ```cmd
 curl http://localhost:8080/api/me ^
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE"
+  -H "Authorization: Bearer %TOKEN%"
 ```
 
-## Current status
+## Projects API
 
-Initial setup.
+### Create project
+
+```cmd
+curl -X POST http://localhost:8080/api/projects ^
+  -H "Authorization: Bearer %TOKEN%" ^
+  -H "Content-Type: application/json" ^
+  -d "{\"title\":\"Networking Labs\",\"description\":\"HCIA lab reports\",\"color\":\"#4F46E5\"}"
+```
+
+```cmd
+set PROJECT_ID=PASTE_PROJECT_ID_HERE
+```
+
+### List projects
+
+```cmd
+curl http://localhost:8080/api/projects ^
+  -H "Authorization: Bearer %TOKEN%"
+```
+
+### Get project
+
+```cmd
+curl http://localhost:8080/api/projects/%PROJECT_ID% ^
+  -H "Authorization: Bearer %TOKEN%"
+```
+
+### Update project
+
+```cmd
+curl -X PATCH http://localhost:8080/api/projects/%PROJECT_ID% ^
+  -H "Authorization: Bearer %TOKEN%" ^
+  -H "Content-Type: application/json" ^
+  -d "{\"title\":\"Updated title\",\"description\":\"Updated description\",\"color\":\"#10B981\"}"
+```
+
+### Delete project
+
+```cmd
+curl -X DELETE http://localhost:8080/api/projects/%PROJECT_ID% ^
+  -H "Authorization: Bearer %TOKEN%"
+```
+
+## Tasks API
+
+### Create task
+
+```cmd
+curl -X POST http://localhost:8080/api/projects/%PROJECT_ID%/tasks ^
+  -H "Authorization: Bearer %TOKEN%" ^
+  -H "Content-Type: application/json" ^
+  -d "{\"title\":\"Finish lab report\",\"description\":\"Write PPPoE section\",\"status\":\"todo\",\"priority\":\"medium\",\"due_date\":null}"
+```
+
+```cmd
+set TASK_ID=PASTE_TASK_ID_HERE
+```
+
+### List tasks
+
+```cmd
+curl http://localhost:8080/api/projects/%PROJECT_ID%/tasks ^
+  -H "Authorization: Bearer %TOKEN%"
+```
+
+### Get task
+
+```cmd
+curl http://localhost:8080/api/tasks/%TASK_ID% ^
+  -H "Authorization: Bearer %TOKEN%"
+```
+
+### Update task
+
+```cmd
+curl -X PATCH http://localhost:8080/api/tasks/%TASK_ID% ^
+  -H "Authorization: Bearer %TOKEN%" ^
+  -H "Content-Type: application/json" ^
+  -d "{\"title\":\"Updated task title\",\"description\":\"Updated description\",\"status\":\"in_progress\",\"priority\":\"high\",\"due_date\":\"2026-05-10T15:00:00Z\"}"
+```
+
+### Delete task
+
+```cmd
+curl -X DELETE http://localhost:8080/api/tasks/%TASK_ID% ^
+  -H "Authorization: Bearer %TOKEN%"
+```
+
+## Smoke test
+
+Keep the existing smoke test in place:
+
+```cmd
+powershell -ExecutionPolicy Bypass -File scripts/smoke-test.ps1
+```

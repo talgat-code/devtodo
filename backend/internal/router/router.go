@@ -7,6 +7,7 @@ import (
 	"devtodo/internal/database"
 	"devtodo/internal/middleware"
 	"devtodo/internal/projects"
+	"devtodo/internal/tasks"
 	"devtodo/internal/users"
 
 	"github.com/gin-gonic/gin"
@@ -20,6 +21,8 @@ func SetupRouter(appName string, dbPool *pgxpool.Pool, jwtSecret string) *gin.En
 	authHandler := auth.NewHandler(authService)
 	projectStore := projects.NewStore(dbPool)
 	projectHandler := projects.NewHandler(projectStore)
+	taskStore := tasks.NewStore(dbPool)
+	taskHandler := tasks.NewHandler(taskStore)
 
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
@@ -53,9 +56,14 @@ func SetupRouter(appName string, dbPool *pgxpool.Pool, jwtSecret string) *gin.En
 	protectedRoutes.GET("/me", authHandler.Me)
 	protectedRoutes.GET("/projects", projectHandler.List)
 	protectedRoutes.POST("/projects", projectHandler.Create)
-	protectedRoutes.GET("/projects/:id", projectHandler.GetByID)
-	protectedRoutes.PATCH("/projects/:id", projectHandler.Update)
-	protectedRoutes.DELETE("/projects/:id", projectHandler.Delete)
+	protectedRoutes.GET("/projects/:project_id", projectHandler.GetByID)
+	protectedRoutes.PATCH("/projects/:project_id", projectHandler.Update)
+	protectedRoutes.DELETE("/projects/:project_id", projectHandler.Delete)
+	protectedRoutes.GET("/projects/:project_id/tasks", taskHandler.List)
+	protectedRoutes.POST("/projects/:project_id/tasks", taskHandler.Create)
+	protectedRoutes.GET("/tasks/:id", taskHandler.GetByID)
+	protectedRoutes.PATCH("/tasks/:id", taskHandler.Update)
+	protectedRoutes.DELETE("/tasks/:id", taskHandler.Delete)
 
 	return r
 }
