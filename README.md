@@ -35,129 +35,132 @@ devtodo/
 |   |-- tailwind.config.ts
 |   \-- vite.config.ts
 |-- scripts/
+|   |-- run-backend.ps1
+|   |-- run-frontend.ps1
+|   |-- run-smoke-test.ps1
 |   \-- smoke-test.ps1
 |-- .env.example
 |-- docker-compose.yml
 \-- README.md
 ```
 
-## Backend setup
+## Quick start on Windows
 
-1. Install Go and Docker Desktop.
-2. Copy the root environment file:
+Terminal 1:
 
-```cmd
-copy .env.example .env
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/run-backend.ps1
 ```
 
-3. Start PostgreSQL and Adminer:
+Terminal 2:
 
-```cmd
-docker compose up -d devtodo-postgres devtodo-adminer
-docker compose ps
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/run-frontend.ps1
 ```
 
-4. Run migrations:
+Terminal 3:
 
-```cmd
-cd backend
-go run ./cmd/migrate up
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/run-smoke-test.ps1
 ```
 
-5. Start the backend:
+Local URLs:
 
-```cmd
-go run ./cmd/api
-```
+- Backend: `http://localhost:18080`
+- Frontend: `http://localhost:5173`
+- Adminer: `http://localhost:8081`
+- PostgreSQL host port: `15433`
 
-The default backend URL is `http://localhost:8080`.
+`scripts/run-backend.ps1` starts Docker PostgreSQL, runs migrations, and launches the backend on port `18080`.
 
-Adminer is available at `http://localhost:8081`.
+`scripts/run-frontend.ps1` installs frontend dependencies when needed and starts Vite on port `5173`.
 
-### Health checks
+`scripts/run-smoke-test.ps1` runs the existing smoke test against `http://localhost:18080`.
 
-```cmd
-curl http://localhost:8080/health
-curl http://localhost:8080/ready
-```
+## Environment files
 
-## Frontend setup
-
-The frontend lives inside `frontend/` and uses `VITE_API_BASE_URL` to decide which backend to talk to.
-
-1. Copy the frontend environment file:
-
-```cmd
-cd frontend
-copy .env.example .env
-```
-
-2. Install dependencies:
-
-```cmd
-npm install
-```
-
-3. Start the frontend dev server on port `5173`:
-
-```cmd
-npm run dev
-```
-
-4. Open the app:
-
-```text
-http://localhost:5173
-```
-
-### Switching backend ports
-
-`frontend/.env.example` contains:
+Root `.env.example` is set up for the recommended local backend URL:
 
 ```env
-VITE_API_BASE_URL=http://localhost:8080
+APP_PORT=18080
+POSTGRES_HOST=127.0.0.1
+POSTGRES_PORT=15433
+POSTGRES_USER=devtodo
+POSTGRES_PASSWORD=devtodo_password
+POSTGRES_DB=devtodo_db
+POSTGRES_SSLMODE=disable
+DATABASE_URL=postgres://devtodo:devtodo_password@127.0.0.1:15433/devtodo_db?sslmode=disable
+JWT_SECRET=change_me_later
 ```
 
-If your backend is running on `http://localhost:18080`, change it to:
+Frontend `frontend/.env.example` points to the local backend:
 
 ```env
 VITE_API_BASE_URL=http://localhost:18080
 ```
 
-The Vite dev server proxies `/api`, `/health`, and `/ready` to `VITE_API_BASE_URL`, which helps avoid local CORS issues without changing the Go backend.
+The helper scripts create `.env` or `frontend/.env` from their example files if they are missing.
 
-## Typical local workflow
+## Manual setup
 
-1. Start PostgreSQL:
+If you want to run things manually instead of using the helper scripts:
 
-```cmd
-docker compose up -d devtodo-postgres devtodo-adminer
+1. Copy the environment files:
+
+```powershell
+Copy-Item .env.example .env
+Copy-Item frontend\.env.example frontend\.env
 ```
 
-2. Run migrations and start the API:
+2. Start PostgreSQL:
 
-```cmd
+```powershell
+docker compose up -d devtodo-postgres
+```
+
+3. Optional: start Adminer:
+
+```powershell
+docker compose up -d devtodo-adminer
+```
+
+4. Run backend migrations:
+
+```powershell
 cd backend
 go run ./cmd/migrate up
+```
+
+5. Start the backend on port `18080`:
+
+```powershell
+$env:APP_PORT = "18080"
 go run ./cmd/api
 ```
 
-3. Start the frontend:
+6. Start the frontend:
 
-```cmd
+```powershell
 cd frontend
 npm install
 npm run dev
 ```
 
-4. Open `http://localhost:5173`.
+The frontend uses `VITE_API_BASE_URL`, and the Vite dev server proxies `/api`, `/health`, and `/ready` to that backend URL.
+
+## Health checks
+
+```powershell
+curl http://localhost:18080/health
+curl http://localhost:18080/ready
+```
 
 ## Auth API
 
 ### Register
 
 ```cmd
-curl -X POST http://localhost:8080/api/auth/register ^
+curl -X POST http://localhost:18080/api/auth/register ^
   -H "Content-Type: application/json" ^
   -d "{\"name\":\"John Doe\",\"email\":\"john@example.com\",\"password\":\"password123\"}"
 ```
@@ -165,7 +168,7 @@ curl -X POST http://localhost:8080/api/auth/register ^
 ### Login
 
 ```cmd
-curl -X POST http://localhost:8080/api/auth/login ^
+curl -X POST http://localhost:18080/api/auth/login ^
   -H "Content-Type: application/json" ^
   -d "{\"email\":\"john@example.com\",\"password\":\"password123\"}"
 ```
@@ -179,7 +182,7 @@ set TOKEN=PASTE_ACCESS_TOKEN_HERE
 ### Get `/api/me`
 
 ```cmd
-curl http://localhost:8080/api/me ^
+curl http://localhost:18080/api/me ^
   -H "Authorization: Bearer %TOKEN%"
 ```
 
@@ -188,7 +191,7 @@ curl http://localhost:8080/api/me ^
 ### Create project
 
 ```cmd
-curl -X POST http://localhost:8080/api/projects ^
+curl -X POST http://localhost:18080/api/projects ^
   -H "Authorization: Bearer %TOKEN%" ^
   -H "Content-Type: application/json" ^
   -d "{\"title\":\"Networking Labs\",\"description\":\"HCIA lab reports\",\"color\":\"#4F46E5\"}"
@@ -201,21 +204,21 @@ set PROJECT_ID=PASTE_PROJECT_ID_HERE
 ### List projects
 
 ```cmd
-curl http://localhost:8080/api/projects ^
+curl http://localhost:18080/api/projects ^
   -H "Authorization: Bearer %TOKEN%"
 ```
 
 ### Get project
 
 ```cmd
-curl http://localhost:8080/api/projects/%PROJECT_ID% ^
+curl http://localhost:18080/api/projects/%PROJECT_ID% ^
   -H "Authorization: Bearer %TOKEN%"
 ```
 
 ### Update project
 
 ```cmd
-curl -X PATCH http://localhost:8080/api/projects/%PROJECT_ID% ^
+curl -X PATCH http://localhost:18080/api/projects/%PROJECT_ID% ^
   -H "Authorization: Bearer %TOKEN%" ^
   -H "Content-Type: application/json" ^
   -d "{\"title\":\"Updated title\",\"description\":\"Updated description\",\"color\":\"#10B981\"}"
@@ -224,7 +227,7 @@ curl -X PATCH http://localhost:8080/api/projects/%PROJECT_ID% ^
 ### Delete project
 
 ```cmd
-curl -X DELETE http://localhost:8080/api/projects/%PROJECT_ID% ^
+curl -X DELETE http://localhost:18080/api/projects/%PROJECT_ID% ^
   -H "Authorization: Bearer %TOKEN%"
 ```
 
@@ -233,7 +236,7 @@ curl -X DELETE http://localhost:8080/api/projects/%PROJECT_ID% ^
 ### Create task
 
 ```cmd
-curl -X POST http://localhost:8080/api/projects/%PROJECT_ID%/tasks ^
+curl -X POST http://localhost:18080/api/projects/%PROJECT_ID%/tasks ^
   -H "Authorization: Bearer %TOKEN%" ^
   -H "Content-Type: application/json" ^
   -d "{\"title\":\"Finish lab report\",\"description\":\"Write PPPoE section\",\"status\":\"todo\",\"priority\":\"medium\",\"due_date\":null}"
@@ -246,21 +249,21 @@ set TASK_ID=PASTE_TASK_ID_HERE
 ### List tasks
 
 ```cmd
-curl http://localhost:8080/api/projects/%PROJECT_ID%/tasks ^
+curl http://localhost:18080/api/projects/%PROJECT_ID%/tasks ^
   -H "Authorization: Bearer %TOKEN%"
 ```
 
 ### Get task
 
 ```cmd
-curl http://localhost:8080/api/tasks/%TASK_ID% ^
+curl http://localhost:18080/api/tasks/%TASK_ID% ^
   -H "Authorization: Bearer %TOKEN%"
 ```
 
 ### Update task
 
 ```cmd
-curl -X PATCH http://localhost:8080/api/tasks/%TASK_ID% ^
+curl -X PATCH http://localhost:18080/api/tasks/%TASK_ID% ^
   -H "Authorization: Bearer %TOKEN%" ^
   -H "Content-Type: application/json" ^
   -d "{\"title\":\"Updated task title\",\"description\":\"Updated description\",\"status\":\"in_progress\",\"priority\":\"high\",\"due_date\":\"2026-05-10T15:00:00Z\"}"
@@ -269,7 +272,7 @@ curl -X PATCH http://localhost:8080/api/tasks/%TASK_ID% ^
 ### Delete task
 
 ```cmd
-curl -X DELETE http://localhost:8080/api/tasks/%TASK_ID% ^
+curl -X DELETE http://localhost:18080/api/tasks/%TASK_ID% ^
   -H "Authorization: Bearer %TOKEN%"
 ```
 
@@ -277,6 +280,6 @@ curl -X DELETE http://localhost:8080/api/tasks/%TASK_ID% ^
 
 Keep the existing smoke test in place:
 
-```cmd
-powershell -ExecutionPolicy Bypass -File scripts/smoke-test.ps1
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/run-smoke-test.ps1
 ```
