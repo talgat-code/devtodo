@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { EmptyState } from "./EmptyState";
 import type { Project } from "../types";
+import { hexToRgba } from "../utils";
 
 interface SidebarProps {
   projects: Project[];
@@ -8,27 +9,6 @@ interface SidebarProps {
   isLoading: boolean;
   onSelectProject: (projectId: string) => void;
   onCreateProject: () => void;
-}
-
-function hexToRgba(hex: string, alpha: number) {
-  const normalized = hex.replace("#", "");
-  const expanded =
-    normalized.length === 3
-      ? normalized
-          .split("")
-          .map((character) => `${character}${character}`)
-          .join("")
-      : normalized;
-
-  if (!/^[0-9a-fA-F]{6}$/.test(expanded)) {
-    return `rgba(15, 118, 110, ${alpha})`;
-  }
-
-  const red = Number.parseInt(expanded.slice(0, 2), 16);
-  const green = Number.parseInt(expanded.slice(2, 4), 16);
-  const blue = Number.parseInt(expanded.slice(4, 6), 16);
-
-  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
 }
 
 export function Sidebar({
@@ -60,35 +40,38 @@ export function Sidebar({
           <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, index) => (
               <div
-                className="h-24 animate-pulse rounded-[24px] bg-slate-100"
+                className="shimmer-skeleton h-24 rounded-[24px]"
                 key={`project-skeleton-${index}`}
               />
             ))}
           </div>
         ) : projects.length ? (
           <div className="space-y-3">
-            {projects.map((project) => {
+            {projects.map((project, index) => {
               const isSelected = selectedProjectId === project.id;
-              const cardStyle: CSSProperties = isSelected
-                ? {
-                    background: `linear-gradient(135deg, ${hexToRgba(
-                      project.color || "#0f766e",
-                      0.18,
-                    )}, rgba(255,255,255,0.95))`,
-                    borderColor: hexToRgba(project.color || "#0f766e", 0.24),
-                    boxShadow: `0 18px 38px ${hexToRgba(
-                      project.color || "#0f766e",
-                      0.16,
-                    )}`,
-                  }
-                : {};
+              const cardStyle: CSSProperties = {
+                animationDelay: `${index * 55}ms`,
+                ...(isSelected
+                  ? {
+                      background: `linear-gradient(135deg, ${hexToRgba(
+                        project.color || "#0f766e",
+                        0.18,
+                      )}, rgba(255,255,255,0.95))`,
+                      borderColor: hexToRgba(project.color || "#0f766e", 0.24),
+                      boxShadow: `0 18px 38px ${hexToRgba(
+                        project.color || "#0f766e",
+                        0.16,
+                      )}`,
+                    }
+                  : {}),
+              };
 
               return (
                 <button
-                  className={`w-full rounded-[26px] border p-4 text-left transition ${
+                  className={`animate-slide-left w-full rounded-[26px] border p-4 text-left transition-all duration-300 ${
                     isSelected
-                      ? "translate-x-1 border-white/80"
-                      : "border-slate-200 bg-white/80 hover:-translate-y-0.5 hover:border-slate-300"
+                      ? "translate-x-1.5 border-white/80"
+                      : "border-slate-200 bg-white/80 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-sm"
                   }`}
                   key={project.id}
                   onClick={() => onSelectProject(project.id)}
@@ -97,7 +80,9 @@ export function Sidebar({
                 >
                   <div className="flex items-start gap-3">
                     <span
-                      className="mt-1 h-3.5 w-3.5 rounded-full"
+                      className={`mt-1 rounded-full transition-all duration-300 ${
+                        isSelected ? "h-4 w-4" : "h-3.5 w-3.5"
+                      }`}
                       style={{ backgroundColor: project.color || "#0f766e" }}
                     />
                     <div className="min-w-0 flex-1">
@@ -108,6 +93,11 @@ export function Sidebar({
                         {project.description || "No description yet."}
                       </p>
                     </div>
+                    {isSelected ? (
+                      <span className="mt-1 flex-shrink-0 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                        Active
+                      </span>
+                    ) : null}
                   </div>
                 </button>
               );

@@ -16,6 +16,10 @@ import (
 
 func SetupRouter(appName string, dbPool *pgxpool.Pool, jwtSecret string) *gin.Engine {
 	r := gin.Default()
+
+	r.Use(middleware.CORS())
+	r.Use(middleware.SecurityHeaders())
+
 	userStore := users.NewStore(dbPool)
 	authService := auth.NewService(userStore, jwtSecret)
 	authHandler := auth.NewHandler(authService)
