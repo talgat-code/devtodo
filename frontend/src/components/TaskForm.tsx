@@ -41,6 +41,19 @@ function toApiDate(value: string) {
   return parsedDate.toISOString();
 }
 
+function Spinner() {
+  return (
+    <svg aria-hidden="true" className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path
+        className="opacity-75"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
 export function TaskForm({
   mode,
   initialTask,
@@ -87,8 +100,8 @@ export function TaskForm({
   }
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/35 px-4 py-8 backdrop-blur-sm">
-      <div className="surface-card w-full max-w-2xl animate-float-in p-6 sm:p-8">
+    <div className="modal-overlay">
+      <div className="surface-card w-full max-w-2xl animate-scale-in p-6 sm:p-8">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-teal-600">
@@ -176,7 +189,7 @@ export function TaskForm({
           </label>
 
           {localError || error ? (
-            <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
+            <div className="animate-fade-up rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
               {localError || error}
             </div>
           ) : null}
@@ -191,13 +204,16 @@ export function TaskForm({
               Cancel
             </button>
             <button className="primary-button" disabled={isSaving} type="submit">
-              {isSaving
-                ? mode === "create"
-                  ? "Creating..."
-                  : "Saving..."
-                : mode === "create"
-                  ? "Create task"
-                  : "Save changes"}
+              {isSaving ? (
+                <>
+                  <Spinner />
+                  {mode === "create" ? "Creating..." : "Saving..."}
+                </>
+              ) : mode === "create" ? (
+                "Create task"
+              ) : (
+                "Save changes"
+              )}
             </button>
           </div>
         </form>

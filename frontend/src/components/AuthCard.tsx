@@ -21,6 +21,31 @@ interface AuthCardProps {
   onConfirmPasswordChange: (value: string) => void;
 }
 
+function Spinner() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-4 w-4 animate-spin"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      />
+      <path
+        className="opacity-75"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
 export function AuthCard({
   mode,
   isLoading,
@@ -48,11 +73,12 @@ export function AuthCard({
           <BrandLogo compact showTagline={false} />
         </div>
 
+        {/* Animated tab switcher */}
         <div className="mt-5 inline-grid w-full grid-cols-2 rounded-full border border-slate-200/80 bg-slate-100/90 p-1.5">
           <button
-            className={`flex-1 rounded-full px-4 py-3 text-sm font-semibold transition ${
+            className={`flex-1 rounded-full px-4 py-3 text-sm font-semibold transition-all duration-300 ${
               mode === "login"
-                ? "bg-white text-slate-900 shadow-sm"
+                ? "scale-[1.03] bg-white text-slate-900 shadow-sm"
                 : "text-slate-500 hover:text-slate-700"
             }`}
             onClick={() => onModeChange("login")}
@@ -61,9 +87,9 @@ export function AuthCard({
             Login
           </button>
           <button
-            className={`flex-1 rounded-full px-4 py-3 text-sm font-semibold transition ${
+            className={`flex-1 rounded-full px-4 py-3 text-sm font-semibold transition-all duration-300 ${
               mode === "register"
-                ? "bg-white text-slate-900 shadow-sm"
+                ? "scale-[1.03] bg-white text-slate-900 shadow-sm"
                 : "text-slate-500 hover:text-slate-700"
             }`}
             onClick={() => onModeChange("register")}
@@ -91,7 +117,7 @@ export function AuthCard({
 
         <form className="mt-8 space-y-4" onSubmit={onSubmit}>
           {mode === "register" ? (
-            <label className="block">
+            <label className="block animate-fade-up" style={{ animationDelay: "0ms" }}>
               <span className="mb-2 block text-sm font-medium text-slate-700">Name</span>
               <input
                 className="soft-input"
@@ -102,7 +128,7 @@ export function AuthCard({
             </label>
           ) : null}
 
-          <label className="block">
+          <label className="block animate-fade-up" style={{ animationDelay: mode === "register" ? "50ms" : "0ms" }}>
             <span className="mb-2 block text-sm font-medium text-slate-700">Email</span>
             <input
               autoComplete="email"
@@ -114,7 +140,7 @@ export function AuthCard({
             />
           </label>
 
-          <label className="block">
+          <label className="block animate-fade-up" style={{ animationDelay: mode === "register" ? "100ms" : "50ms" }}>
             <span className="mb-2 block text-sm font-medium text-slate-700">Password</span>
             <input
               autoComplete={mode === "login" ? "current-password" : "new-password"}
@@ -127,7 +153,7 @@ export function AuthCard({
           </label>
 
           {mode === "register" ? (
-            <label className="block">
+            <label className="block animate-fade-up" style={{ animationDelay: "150ms" }}>
               <span className="mb-2 block text-sm font-medium text-slate-700">
                 Confirm password
               </span>
@@ -143,29 +169,32 @@ export function AuthCard({
           ) : null}
 
           {notice ? (
-            <div className="rounded-[20px] border border-teal-200 bg-teal-50 px-4 py-3 text-sm leading-6 text-teal-700">
+            <div className="animate-fade-up rounded-[20px] border border-teal-200 bg-teal-50 px-4 py-3 text-sm leading-6 text-teal-700">
               {notice}
             </div>
           ) : null}
 
           {formError ? (
-            <div className="rounded-[20px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm leading-6 text-rose-600">
+            <div className="animate-fade-up rounded-[20px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm leading-6 text-rose-600">
               {formError}
             </div>
           ) : null}
 
           <button
-            className="inline-flex w-full items-center justify-center rounded-2xl bg-slate-900 px-5 py-3.5 text-[0.96rem] font-semibold text-white shadow-[0_18px_36px_rgba(15,23,42,0.18)] transition hover:-translate-y-0.5 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex w-full items-center justify-center gap-2.5 rounded-2xl bg-slate-900 px-5 py-3.5 text-[0.96rem] font-semibold text-white shadow-[0_18px_36px_rgba(15,23,42,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-lift disabled:cursor-not-allowed disabled:opacity-60"
             disabled={isLoading}
             type="submit"
           >
-            {isLoading
-              ? mode === "login"
-                ? "Signing in..."
-                : "Creating account..."
-              : mode === "login"
-                ? "Sign in"
-                : "Create account"}
+            {isLoading ? (
+              <>
+                <Spinner />
+                {mode === "login" ? "Signing in..." : "Creating account..."}
+              </>
+            ) : mode === "login" ? (
+              "Sign in"
+            ) : (
+              "Create account"
+            )}
           </button>
         </form>
 
@@ -173,7 +202,7 @@ export function AuthCard({
           <p className="text-center text-sm text-slate-500">
             {mode === "login" ? "Need an account?" : "Already have an account?"}{" "}
             <button
-              className="font-semibold text-teal-700 transition hover:text-teal-800"
+              className="font-semibold text-teal-700 transition-colors duration-200 hover:text-teal-800"
               onClick={() => onModeChange(mode === "login" ? "register" : "login")}
               type="button"
             >

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api, getErrorMessage, isUnauthorizedError } from "../api/client";
 import type { Project, ProjectInput, Task, TaskInput, TaskStatus, User } from "../types";
 import { TASK_STATUS_LABELS, TASK_STATUS_ORDER } from "../types";
+import { hexToRgba } from "../utils";
 import { EmptyState } from "./EmptyState";
 import { ProjectForm } from "./ProjectForm";
 import { Sidebar } from "./Sidebar";
@@ -13,27 +14,6 @@ interface DashboardProps {
   user: User;
   onLogout: () => void;
   onUnauthorized: () => void;
-}
-
-function hexToRgba(hex: string, alpha: number) {
-  const normalized = hex.replace("#", "");
-  const expanded =
-    normalized.length === 3
-      ? normalized
-          .split("")
-          .map((character) => `${character}${character}`)
-          .join("")
-      : normalized;
-
-  if (!/^[0-9a-fA-F]{6}$/.test(expanded)) {
-    return `rgba(15, 118, 110, ${alpha})`;
-  }
-
-  const red = Number.parseInt(expanded.slice(0, 2), 16);
-  const green = Number.parseInt(expanded.slice(2, 4), 16);
-  const blue = Number.parseInt(expanded.slice(4, 6), 16);
-
-  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
 }
 
 function countTasksByStatus(tasks: Task[], status: TaskStatus) {
@@ -319,9 +299,17 @@ export function Dashboard({
 
   return (
     <main className="relative min-h-screen overflow-hidden px-4 py-5 sm:px-6 sm:py-6">
+      {/* Animated background blobs */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-[6%] top-[8%] h-64 w-64 rounded-full bg-teal-100/70 blur-3xl" />
-        <div className="absolute bottom-[10%] right-[8%] h-72 w-72 rounded-full bg-coral-100/70 blur-3xl" />
+        <div className="absolute left-[6%] top-[8%] h-64 w-64 animate-slow-pulse rounded-full bg-teal-100/60 blur-3xl" />
+        <div
+          className="absolute bottom-[10%] right-[8%] h-72 w-72 animate-slow-pulse rounded-full bg-coral-100/60 blur-3xl"
+          style={{ animationDelay: "3s" }}
+        />
+        <div
+          className="absolute left-[40%] top-[50%] h-48 w-48 animate-slow-pulse rounded-full bg-amber-100/40 blur-3xl"
+          style={{ animationDelay: "1.5s" }}
+        />
       </div>
 
       <div className="relative mx-auto max-w-[1600px] xl:grid xl:grid-cols-[320px,minmax(0,1fr)] xl:gap-6">
@@ -337,6 +325,7 @@ export function Dashboard({
         />
 
         <section className="mt-6 xl:mt-0">
+          {/* Header card */}
           <header className="surface-card animate-float-in p-5 sm:p-6">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
               <div>
@@ -344,7 +333,10 @@ export function Dashboard({
                   Dashboard
                 </p>
                 <h1 className="mt-3 text-4xl text-slate-900">
-                  Hello, {user.name.split(" ")[0] || user.name}
+                  Hello,{" "}
+                  <span className="animate-fade-up inline-block" style={{ animationDelay: "150ms" }}>
+                    {user.name.split(" ")[0] || user.name}
+                  </span>
                 </h1>
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500">
                   Keep projects moving with a focused board, gentle visual structure,
@@ -365,24 +357,26 @@ export function Dashboard({
           </header>
 
           {pageError ? (
-            <div className="mt-4 rounded-[24px] border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700">
+            <div className="mt-4 animate-fade-up rounded-[24px] border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700">
               {pageError}
             </div>
           ) : null}
 
           {selectedProject ? (
             <>
+              {/* Project info card */}
               <section
                 className="surface-card mt-4 animate-float-in overflow-hidden p-5 sm:p-6"
                 style={{
                   boxShadow: `0 24px 60px ${hexToRgba(selectedProject.color, 0.16)}`,
+                  animationDelay: "80ms",
                 }}
               >
                 <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-3">
                       <span
-                        className="h-4 w-4 rounded-full"
+                        className="h-4 w-4 animate-pop-in rounded-full shadow-sm"
                         style={{ backgroundColor: selectedProject.color || "#0f766e" }}
                       />
                       <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">
@@ -396,11 +390,13 @@ export function Dashboard({
                         "Add a short description to make this workspace easier to scan later."}
                     </p>
 
+                    {/* Task status badges with staggered pop-in */}
                     <div className="mt-6 flex flex-wrap gap-3">
-                      {TASK_STATUS_ORDER.map((status) => (
+                      {TASK_STATUS_ORDER.map((status, badgeIndex) => (
                         <div
-                          className="rounded-full border border-white/70 bg-white/75 px-4 py-2 text-sm text-slate-600"
+                          className="animate-fade-up rounded-full border border-white/70 bg-white/75 px-4 py-2 text-sm text-slate-600 shadow-sm transition-transform duration-200 hover:scale-105"
                           key={status}
+                          style={{ animationDelay: `${badgeIndex * 60}ms` }}
                         >
                           <span className="font-semibold text-slate-900">
                             {countTasksByStatus(tasks, status)}
@@ -423,7 +419,7 @@ export function Dashboard({
                       Edit project
                     </button>
                     <button
-                      className="rounded-2xl border border-rose-200 px-4 py-3 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="rounded-2xl border border-rose-200 px-4 py-3 text-sm font-semibold text-rose-600 transition-all duration-200 hover:bg-rose-50 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
                       disabled={isDeletingProject}
                       onClick={handleDeleteProject}
                       type="button"
@@ -450,12 +446,12 @@ export function Dashboard({
             </>
           ) : isLoadingProjects ? (
             <section className="surface-card mt-4 p-8">
-              <div className="h-10 w-56 animate-pulse rounded-full bg-slate-100" />
-              <div className="mt-4 h-6 w-80 animate-pulse rounded-full bg-slate-100" />
+              <div className="shimmer-skeleton mb-4 h-10 w-56 rounded-full" />
+              <div className="shimmer-skeleton h-6 w-80 rounded-full" />
               <div className="mt-8 grid gap-4 xl:grid-cols-4">
                 {Array.from({ length: 4 }).map((_, index) => (
                   <div
-                    className="h-48 animate-pulse rounded-[30px] bg-slate-100"
+                    className="shimmer-skeleton h-48 rounded-[30px]"
                     key={`board-skeleton-${index}`}
                   />
                 ))}
