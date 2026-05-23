@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import { api, getApiBaseUrl, getErrorMessage } from "./api/client";
 import { AuthPage } from "./components/AuthPage";
+import { CanvasPage } from "./components/CanvasPage";
 import { Dashboard } from "./components/Dashboard";
 import type { LoginInput, RegisterInput, User } from "./types";
+
+type AppView = "dashboard" | "canvas";
 
 const accessTokenKey = "devtodo.access_token";
 
@@ -29,6 +32,7 @@ export default function App() {
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [authNotice, setAuthNotice] = useState<string | null>(null);
+  const [view, setView] = useState<AppView>("dashboard");
 
   useEffect(() => {
     if (!token) {
@@ -119,6 +123,7 @@ export default function App() {
     localStorage.removeItem(accessTokenKey);
     setToken(null);
     setUser(null);
+    setView("dashboard");
     setAuthError(null);
     setAuthNotice("You have been logged out.");
   }
@@ -148,8 +153,21 @@ export default function App() {
     );
   }
 
+  if (view === "canvas") {
+    return (
+      <CanvasPage
+        onGoToDashboard={() => setView("dashboard")}
+        onLogout={handleLogout}
+        onUnauthorized={handleUnauthorized}
+        token={token || ""}
+        user={user}
+      />
+    );
+  }
+
   return (
     <Dashboard
+      onGoToCanvas={() => setView("canvas")}
       onLogout={handleLogout}
       onUnauthorized={handleUnauthorized}
       token={token || ""}
