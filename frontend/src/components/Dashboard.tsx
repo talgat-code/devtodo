@@ -14,6 +14,7 @@ interface DashboardProps {
   user: User;
   onLogout: () => void;
   onUnauthorized: () => void;
+  onGoToCanvas: () => void;
 }
 
 function countTasksByStatus(tasks: Task[], status: TaskStatus) {
@@ -25,6 +26,7 @@ export function Dashboard({
   user,
   onLogout,
   onUnauthorized,
+  onGoToCanvas,
 }: DashboardProps) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -349,6 +351,13 @@ export function Dashboard({
                   <span className="block font-semibold text-slate-900">{user.name}</span>
                   <span>{user.email}</span>
                 </div>
+                <button
+                  className="secondary-button"
+                  onClick={onGoToCanvas}
+                  type="button"
+                >
+                  Canvas view
+                </button>
                 <button className="secondary-button" onClick={onLogout} type="button">
                   Logout
                 </button>
