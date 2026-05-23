@@ -375,66 +375,87 @@ export function Dashboard({
             <>
               {/* Project info card */}
               <section
-                className="surface-card mt-4 animate-float-in overflow-hidden p-5 sm:p-6"
+                className="surface-card mt-4 animate-float-in overflow-hidden"
                 style={{
-                  boxShadow: `0 24px 60px ${hexToRgba(selectedProject.color, 0.16)}`,
+                  boxShadow: `0 20px 50px ${hexToRgba(selectedProject.color, 0.14)}`,
                   animationDelay: "80ms",
                 }}
               >
-                <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-                  <div className="min-w-0 flex-1">
+                {/* Project color accent line */}
+                <div
+                  className="h-1 w-full"
+                  style={{ backgroundColor: selectedProject.color || "#0f766e" }}
+                />
+
+                <div className="p-5 sm:p-6">
+                  {/* Top row: title + actions */}
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex items-center gap-3">
                       <span
-                        className="h-4 w-4 animate-pop-in rounded-full shadow-sm"
+                        className="h-3 w-3 animate-pop-in rounded-full shadow-sm"
                         style={{ backgroundColor: selectedProject.color || "#0f766e" }}
                       />
                       <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">
-                        Selected project
+                        Active project
                       </p>
                     </div>
 
-                    <h2 className="mt-4 text-4xl text-slate-900">{selectedProject.title}</h2>
-                    <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600">
-                      {selectedProject.description ||
-                        "Add a short description to make this workspace easier to scan later."}
-                    </p>
-
-                    {/* Task status badges with staggered pop-in */}
-                    <div className="mt-6 flex flex-wrap gap-3">
-                      {TASK_STATUS_ORDER.map((status, badgeIndex) => (
-                        <div
-                          className="animate-fade-up rounded-full border border-white/70 bg-white/75 px-4 py-2 text-sm text-slate-600 shadow-sm transition-transform duration-200 hover:scale-105"
-                          key={status}
-                          style={{ animationDelay: `${badgeIndex * 60}ms` }}
-                        >
-                          <span className="font-semibold text-slate-900">
-                            {countTasksByStatus(tasks, status)}
-                          </span>{" "}
-                          {TASK_STATUS_LABELS[status].toLowerCase()}
-                        </div>
-                      ))}
+                    {/* Actions row */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        className="primary-button px-4 py-2.5 text-sm"
+                        onClick={openCreateTaskForm}
+                        type="button"
+                      >
+                        + Add task
+                      </button>
+                      <button
+                        className="secondary-button px-4 py-2.5 text-sm"
+                        onClick={openEditProjectForm}
+                        type="button"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="rounded-2xl border border-rose-100 px-4 py-2.5 text-sm font-semibold text-rose-500 transition-all duration-200 hover:border-rose-200 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60"
+                        disabled={isDeletingProject}
+                        onClick={handleDeleteProject}
+                        type="button"
+                      >
+                        {isDeletingProject ? "Deleting…" : "Delete"}
+                      </button>
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-3 sm:flex-row xl:flex-col">
-                    <button className="primary-button" onClick={openCreateTaskForm} type="button">
-                      Add task
-                    </button>
-                    <button
-                      className="secondary-button"
-                      onClick={openEditProjectForm}
-                      type="button"
-                    >
-                      Edit project
-                    </button>
-                    <button
-                      className="rounded-2xl border border-rose-200 px-4 py-3 text-sm font-semibold text-rose-600 transition-all duration-200 hover:bg-rose-50 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
-                      disabled={isDeletingProject}
-                      onClick={handleDeleteProject}
-                      type="button"
-                    >
-                      {isDeletingProject ? "Deleting..." : "Delete project"}
-                    </button>
+                  {/* Title + description */}
+                  <h2 className="mt-3 text-3xl text-slate-900">{selectedProject.title}</h2>
+                  <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+                    {selectedProject.description ||
+                      "Add a short description to make this workspace easier to scan later."}
+                  </p>
+
+                  {/* Status stats row */}
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    {TASK_STATUS_ORDER.map((status, i) => {
+                      const count = countTasksByStatus(tasks, status);
+                      const accent = ["#94a3b8", "#38bdf8", "#fbbf24", "#34d399"][i];
+                      return (
+                        <div
+                          className="animate-fade-up flex items-center gap-2 rounded-2xl border border-white/60 bg-white/70 px-3.5 py-2 shadow-sm"
+                          key={status}
+                          style={{ animationDelay: `${i * 50}ms` }}
+                        >
+                          <span
+                            className="h-2 w-2 rounded-full"
+                            style={{ backgroundColor: accent }}
+                          />
+                          <span className="text-sm font-bold text-slate-900">{count}</span>
+                          <span className="text-xs text-slate-500">
+                            {TASK_STATUS_LABELS[status].toLowerCase()}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </section>
