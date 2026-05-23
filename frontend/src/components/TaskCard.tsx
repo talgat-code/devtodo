@@ -8,9 +8,12 @@ interface TaskCardProps {
   projectColor: string;
   isBusy: boolean;
   index?: number;
+  isDragging?: boolean;
   onStatusChange: (taskId: string, status: TaskStatus) => void;
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
+  onDragStart: (e: React.DragEvent, taskId: string) => void;
+  onDragEnd: () => void;
 }
 
 const priorityStyles: Record<Task["priority"], string> = {
@@ -46,9 +49,12 @@ export function TaskCard({
   projectColor,
   isBusy,
   index = 0,
+  isDragging = false,
   onStatusChange,
   onEdit,
   onDelete,
+  onDragStart,
+  onDragEnd,
 }: TaskCardProps) {
   const tint = projectColor || "#0f766e";
   const cardStyle: CSSProperties = {
@@ -63,7 +69,12 @@ export function TaskCard({
 
   return (
     <article
-      className="group relative animate-fade-up rounded-[24px] border bg-white/97 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+      className={`group relative animate-fade-up rounded-[24px] border bg-white/97 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
+        isDragging ? "opacity-40 scale-95 shadow-none" : "cursor-grab active:cursor-grabbing"
+      }`}
+      draggable={!isBusy}
+      onDragEnd={onDragEnd}
+      onDragStart={(e) => onDragStart(e, task.id)}
       style={cardStyle}
     >
       {/* Status beacon */}
